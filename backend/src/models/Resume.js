@@ -9,8 +9,18 @@ const ResumeSchema = new mongoose.Schema(
     version: {
       type: Number,
     },
+    extractedRaw: {
+      type: String,
+    },
 
     extractedText: {
+      type: String,
+      trim: true,
+    },
+    originalName: {
+      type: String,
+    },
+    filePath: {
       type: String,
     },
   },

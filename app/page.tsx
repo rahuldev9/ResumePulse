@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import {
   ArrowRight,
@@ -7,31 +8,15 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
+import Navbar from "./components/Navbar";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-500 selection:text-white">
       {/* Navigation */}
-      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-indigo-600 text-white p-2 rounded-lg">
-              <GitBranch className="h-5 w-5" />
-            </div>
-            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              ResumePulse
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition">
-              Sign In
-            </button>
-            <button className="text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm transition">
-              Get Started Free
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 text-center">
@@ -41,7 +26,7 @@ export default function HomePage() {
         </div>
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 max-w-3xl mx-auto leading-tight">
           Never lose track of your{" "}
-          <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
             resume iterations
           </span>{" "}
           again.
@@ -52,7 +37,10 @@ export default function HomePage() {
           perfectly organized.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5">
+          <button
+            onClick={() => router.push("/resume-analyzer")}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5"
+          >
             Start Tracking Free
             <ArrowRight className="h-5 w-5" />
           </button>

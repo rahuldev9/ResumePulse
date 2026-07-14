@@ -11,13 +11,15 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/uploads", express.static("uploads"));
+
+app.use("/api/resumes", resumeRoutes);
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Resume Tracker API Running",
+    message: "Resume Pulse API Running",
   });
 });
-
-app.use("/api/resumes", resumeRoutes);
 
 export default app;

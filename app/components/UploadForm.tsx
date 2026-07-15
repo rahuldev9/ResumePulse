@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import ResumeViewer from "@/app/components/ResumeFileCard";
+import DeleteConfirmModal from "./DeleteConfirmModal";
+import ResumeScanner from "./ResumeScanner";
 
 type ComparisonItem = {
   category: string;
@@ -44,6 +46,8 @@ export default function UploadForm() {
     message: string;
   } | null>(null);
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<"old" | "new" | null>(null);
 
   const handleSubmit = async () => {
     if (!oldResume || !newResume) {
@@ -107,15 +111,32 @@ export default function UploadForm() {
     }
   };
 
+  const openDeleteModal = (target: "old" | "new") => {
+    setDeleteTarget(target);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (deleteTarget === "old") {
+      setOldResume(null);
+    } else if (deleteTarget === "new") {
+      setNewResume(null);
+    }
+
+    setDeleteTarget(null);
+    setIsDeleteOpen(false);
+    setStatus(null);
+  };
+
   return (
-    <div className=" w-full px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-      {/* 1. LEFT PANEL: Upload Controls */}
-      <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm h-full">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* 1. LEFT PANEL: Upload Controls (Takes 5 cols on large screens) */}
+      <div className="lg:col-span-5 bg-white border border-slate-100 p-6 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.02)] h-full">
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-slate-900">
-            Compare Resume Versions
+          <h2 className="text-xl font-black tracking-tight text-slate-900">
+            Compare Versions
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1 font-normal leading-relaxed">
             Upload your original and new variations to view a structural profile
             analysis.
           </p>
@@ -124,63 +145,67 @@ export default function UploadForm() {
         {/* Status Notifications */}
         {status && (
           <div
-            className={`mb-6 p-4 rounded-xl flex items-start gap-3 text-sm border ${
+            className={`mb-6 p-4 rounded-xl flex items-start gap-3 text-sm border shadow-xs animate-in fade-in duration-200 ${
               status.type === "success"
-                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                : "bg-red-50 text-red-800 border-red-200"
+                ? "bg-emerald-50/50 text-emerald-800 border-emerald-200/60"
+                : "bg-rose-50/50 text-rose-800 border-rose-200/60"
             }`}
           >
             {status.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
             ) : (
-              <AlertCircle className="h-5 w-5 shrink-0 text-red-600" />
+              <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
             )}
-            <span>{status.message}</span>
+            <span className="font-medium">
+              {typeof status.message === "string" ? status.message : ""}
+            </span>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Stacked Vertical Upload Cards */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {/* Previous Resume Slot */}
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">
                 Original Resume
               </label>
               <div
-                className={`relative h-20 border-2 border-dashed rounded-xl transition-all duration-200 flex flex-col items-center justify-center p-2 text-center ${
+                className={`relative h-24 border border-dashed rounded-xl transition-all duration-300 flex flex-col items-center justify-center p-4 text-center group ${
                   oldResume
-                    ? "border-indigo-500 bg-indigo-50/30 shadow-xs"
-                    : "border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50"
+                    ? "border-indigo-500/80 bg-indigo-50/30 shadow-[0_4px_12px_rgba(99,102,241,0.04)]"
+                    : "border-slate-200 hover:border-indigo-300 bg-slate-50/50 hover:bg-white shadow-xs"
                 }`}
               >
                 {oldResume ? (
-                  <div className="flex items-center justify-between w-full px-4 relative z-10 animate-in fade-in duration-150 gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <UploadCloud className="h-4 w-4 text-indigo-600 shrink-0" />
-                      <span className="text-xs text-slate-700 font-medium truncate block">
+                  <div className="flex items-center justify-between w-full relative z-10 animate-in fade-in zoom-in-95 duration-150 gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600 border border-indigo-100/50">
+                        <UploadCloud className="h-4 w-4" />
+                      </div>
+                      <span className="text-xs text-slate-800 font-semibold truncate block">
                         {oldResume.name}
                       </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => setOldResume(null)}
-                      className="p-1.5 bg-white border border-slate-200 rounded-full text-slate-400 hover:text-rose-600 hover:border-rose-200 shadow-xs transition-colors shrink-0"
+                      onClick={() => openDeleteModal("old")}
+                      className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 shadow-xs transition-all cursor-pointer shrink-0 active:scale-90"
                       title="Remove file"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2">
-                      <UploadCloud className="h-4 w-4 text-slate-400" />
-                      <span className="text-xs text-slate-600 font-medium">
-                        Choose original file
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        or drag here
-                      </span>
+                    <div className="flex flex-col items-center gap-1">
+                      <UploadCloud className="h-5 w-5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                      <div className="text-xs text-slate-700 font-semibold mt-1">
+                        Choose original file{" "}
+                        <span className="text-slate-400 font-normal">
+                          or drag here
+                        </span>
+                      </div>
                     </div>
                     <input
                       type="file"
@@ -198,43 +223,45 @@ export default function UploadForm() {
 
             {/* Updated Resume Slot */}
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">
                 New Variant
               </label>
               <div
-                className={`relative h-20 border-2 border-dashed rounded-xl transition-all duration-200 flex flex-col items-center justify-center p-2 text-center ${
+                className={`relative h-24 border border-dashed rounded-xl transition-all duration-300 flex flex-col items-center justify-center p-4 text-center group ${
                   newResume
-                    ? "border-indigo-500 bg-indigo-50/30 shadow-xs"
-                    : "border-slate-200 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50"
+                    ? "border-indigo-500/80 bg-indigo-50/30 shadow-[0_4px_12px_rgba(99,102,241,0.04)]"
+                    : "border-slate-200 hover:border-indigo-300 bg-slate-50/50 hover:bg-white shadow-xs"
                 }`}
               >
                 {newResume ? (
-                  <div className="flex items-center justify-between w-full px-4 relative z-10 animate-in fade-in duration-150 gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <UploadCloud className="h-4 w-4 text-indigo-600 shrink-0" />
-                      <span className="text-xs text-slate-700 font-medium truncate block">
+                  <div className="flex items-center justify-between w-full relative z-10 animate-in fade-in zoom-in-95 duration-150 gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600 border border-indigo-100/50">
+                        <UploadCloud className="h-4 w-4" />
+                      </div>
+                      <span className="text-xs text-slate-800 font-semibold truncate block">
                         {newResume.name}
                       </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => setNewResume(null)}
-                      className="p-1.5 bg-white border border-slate-200 rounded-full text-slate-400 hover:text-rose-600 hover:border-rose-200 shadow-xs transition-colors shrink-0"
+                      onClick={() => openDeleteModal("new")}
+                      className="p-1.5 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 shadow-xs transition-all cursor-pointer shrink-0 active:scale-90"
                       title="Remove file"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2">
-                      <UploadCloud className="h-4 w-4 text-slate-400" />
-                      <span className="text-xs text-slate-600 font-medium">
-                        Choose new variant
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        or drag here
-                      </span>
+                    <div className="flex flex-col items-center gap-1">
+                      <UploadCloud className="h-5 w-5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                      <div className="text-xs text-slate-700 font-semibold mt-1">
+                        Choose new variant{" "}
+                        <span className="text-slate-400 font-normal">
+                          or drag here
+                        </span>
+                      </div>
                     </div>
                     <input
                       type="file"
@@ -255,12 +282,12 @@ export default function UploadForm() {
           <button
             onClick={handleSubmit}
             disabled={isUploading}
-            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold text-sm py-2.5 px-4 rounded-xl transition shadow-sm shadow-indigo-100 disabled:shadow-none disabled:cursor-not-allowed mt-1"
+            className="w-full flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-800 disabled:bg-slate-300 text-white font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.1)] disabled:shadow-none disabled:cursor-not-allowed mt-2 transform active:scale-98 cursor-pointer"
           >
             {isUploading ? (
               <>
-                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                <span>Processing Diffs...</span>
+                <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                <span>Processing Revisions...</span>
               </>
             ) : (
               <span>Compare Resumes</span>
@@ -269,91 +296,111 @@ export default function UploadForm() {
         </div>
       </div>
 
-      {/* 2. RIGHT PANEL: Document Viewers Side-by-Side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-200 p-6 rounded-2xl h-full align-stretch">
-        <ResumeViewer title="Previous Resume" file={oldResume} />
-        <ResumeViewer title="Updated Resume" file={newResume} />
+      {/* 2. RIGHT PANEL: Document Viewers Side-by-Side (Takes 7 cols on large screens) */}
+      <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-6 rounded-2xl h-full items-stretch">
+        <ResumeScanner loading={isUploading}>
+          <ResumeViewer title="Previous Resume" file={oldResume} />
+        </ResumeScanner>
+
+        <ResumeScanner loading={isUploading}>
+          <ResumeViewer title="Updated Resume" file={newResume} />
+        </ResumeScanner>
       </div>
 
       {/* 3. BOTTOM PANEL: Spans full width underneath left & right sections */}
       {comparison && (
-        <div className="lg:col-span-2 bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <div className="flex items-center gap-2 text-indigo-700 border-b border-slate-100 pb-4 mb-4">
-            <Sparkles className="h-5 w-5 text-indigo-600" />
-            <h3 className="font-bold text-lg text-slate-900">
-              Comparison Report
-            </h3>
+        <div className="lg:col-span-12 bg-white border border-slate-100 p-6 sm:p-8 rounded-2xl shadow-[0_12px_40px_-15px_rgba(0,0,0,0.04)] animate-in fade-in slide-in-from-bottom-6 duration-400 mt-2">
+          <div className="flex items-center gap-2.5 border-b border-slate-100 pb-5 mb-5">
+            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100/50">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-black text-lg text-slate-900 tracking-tight">
+                Comparison Analysis Report
+              </h3>
+              <p className="text-xs text-slate-400 font-normal mt-0.5">
+                AI-generated comprehensive delta evaluation logs.
+              </p>
+            </div>
           </div>
 
-          <p className="text-sm leading-relaxed text-slate-600 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+          <p className="text-sm leading-relaxed text-slate-600 bg-slate-50/70 border border-slate-100 p-4 rounded-xl font-normal">
             {comparison.summary}
           </p>
 
-          {/* Quick Metrics Breakdown counters */}
-          <div className="mt-6 grid gap-4 grid-cols-3 max-w-2xl">
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3 flex flex-col items-center justify-center">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <Layers className="h-3 w-3" /> Total
+          {/* Premium Quick Metrics Breakdown counters */}
+          <div className="mt-6 grid gap-4 grid-cols-3 max-w-xl">
+            <div className="rounded-xl border border-slate-200/60 bg-white p-3.5 flex flex-col items-center justify-center shadow-xs">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                <Layers className="h-3 w-3 text-slate-400" /> Total Diffs
               </div>
-              <div className="text-2xl font-extrabold mt-0.5 text-slate-800">
+              <div className="text-3xl font-black mt-1 text-slate-900">
                 {comparison?.stats?.totalChanges}
               </div>
             </div>
-            <div className="rounded-xl border border-amber-100 bg-amber-50/30 p-3 flex flex-col items-center justify-center">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600/80 flex items-center gap-1">
-                <FileBadge2 className="h-3 w-3" /> Important
+
+            <div className="rounded-xl border border-amber-200/70 bg-amber-50/20 p-3.5 flex flex-col items-center justify-center shadow-xs">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-amber-700 flex items-center gap-1.5">
+                <FileBadge2 className="h-3 w-3 text-amber-500" /> Important
               </div>
-              <div className="text-2xl font-extrabold mt-0.5 text-amber-700">
+              <div className="text-3xl font-black mt-1 text-amber-700">
                 {comparison?.stats?.importantChanges}
               </div>
             </div>
-            <div className="rounded-xl border border-rose-100 bg-rose-50/30 p-3 flex flex-col items-center justify-center">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-rose-600/80 flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" /> Reviews
+
+            <div className="rounded-xl border border-rose-200/70 bg-rose-50/20 p-3.5 flex flex-col items-center justify-center shadow-xs">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-rose-700 flex items-center gap-1.5">
+                <AlertTriangle className="h-3 w-3 text-rose-500" /> Reviews
               </div>
-              <div className="text-2xl font-extrabold mt-0.5 text-rose-700">
+              <div className="text-3xl font-black mt-1 text-rose-700">
                 {comparison?.stats?.reviewChanges}
               </div>
             </div>
           </div>
 
           {/* Detailed Structural Revision Cards */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
             {comparison.highlights?.length ? (
               comparison.highlights.map((item, index) => (
                 <div
                   key={`${item.category}-${index}`}
-                  className="rounded-xl border border-slate-200/80 bg-white p-4 hover:border-slate-300 transition-colors shadow-2xs"
+                  className="rounded-xl border border-slate-200/70 bg-white p-5 hover:border-slate-300 hover:shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300 flex flex-col justify-between"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-500 block">
-                        {item.category || "General Variation"}
+                  <div>
+                    <div className="flex items-start justify-between gap-4 mb-2">
+                      <div className="space-y-0.5">
+                        <span className="text-[9px] uppercase font-black tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/40">
+                          {item.category || "General Variation"}
+                        </span>
+                        <h4 className="font-bold text-slate-900 text-base mt-2 tracking-tight">
+                          {item.title}
+                        </h4>
+                      </div>
+                      <span
+                        className={`rounded-md border px-2.5 py-0.5 text-[10px] font-bold shrink-0 tracking-wide uppercase ${getSeverityStyles(
+                          item.severity,
+                        )}`}
+                      >
+                        {item.severity}
                       </span>
-                      <div className="font-bold text-slate-900 text-sm">
-                        {item.title}
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1 leading-normal">
-                        {item.detail}
-                      </div>
                     </div>
-                    <span
-                      className={`rounded-md border px-2.5 py-0.5 text-[11px] font-bold shrink-0 tracking-wide ${getSeverityStyles(
-                        item.severity,
-                      )}`}
-                    >
-                      {item.severity}
-                    </span>
+
+                    <p className="text-xs text-slate-500 mt-1 leading-relaxed font-normal">
+                      {item.detail}
+                    </p>
                   </div>
 
                   {item.items && item.items.length > 0 && (
-                    <ul className="mt-3 list-inside list-disc space-y-1.5 border-t border-slate-50 pt-3 text-xs text-slate-600">
+                    <ul className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-xs">
                       {item.items.map((entry, subIdx) => (
                         <li
                           key={`${index}-${subIdx}`}
-                          className="pl-1 text-slate-700 leading-normal"
+                          className="flex items-start gap-2 text-slate-700 leading-normal"
                         >
-                          <span className="text-slate-600 font-mono">
+                          <span className="text-indigo-500 select-none font-bold mt-0.5">
+                            •
+                          </span>
+                          <span className="text-slate-600 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 block w-full text-[11px]">
                             {entry}
                           </span>
                         </li>
@@ -363,13 +410,30 @@ export default function UploadForm() {
                 </div>
               ))
             ) : (
-              <div className="col-span-2 text-center py-6 text-sm text-slate-400 italic bg-slate-200/20 rounded-xl">
-                No major modifications highlighted.
+              <div className="col-span-2 text-center py-10 text-sm text-slate-400 font-medium bg-slate-50 border border-slate-100 rounded-xl border-dashed">
+                No structural metrics highlighted for comparison.
               </div>
             )}
           </div>
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={isDeleteOpen}
+        onClose={() => {
+          setDeleteTarget(null);
+          setIsDeleteOpen(false);
+        }}
+        onConfirm={handleDelete}
+        title={
+          deleteTarget === "old"
+            ? "Delete original resume?"
+            : "Delete new resume?"
+        }
+        description="This will remove the selected uploaded resume from the comparison form. You can add another file at any time."
+        confirmLabel="Yes, remove it"
+        cancelLabel="Keep file"
+      />
     </div>
   );
 }

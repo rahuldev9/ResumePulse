@@ -87,7 +87,7 @@ export default function UploadForm() {
 
       setStatus({ type: "success", message: "Comparison generated below." });
     } catch (err) {
-      console.error(err);
+      console.log(err);
       setStatus({
         type: "error",
         message:

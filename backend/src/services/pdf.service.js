@@ -47,6 +47,20 @@ const extractDocxText = async (filePath) => {
   return result.value || "";
 };
 
+const decodePdfTextToken = (value = "") => {
+  if (typeof value !== "string" || value === "") return "";
+
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    try {
+      return decodeURIComponent(value.replace(/%(?![0-9A-Fa-f]{2})/g, "%25"));
+    } catch {
+      return value.replace(/%[0-9A-Fa-f]{0,2}/g, "");
+    }
+  }
+};
+
 const extractPdfText = (filePath, opts = { normalize: true }) => {
   return new Promise((resolve, reject) => {
     // Suppress verbose warnings from pdf2json by providing a dummy workerPath
@@ -65,7 +79,10 @@ const extractPdfText = (filePath, opts = { normalize: true }) => {
       pdfData.Pages.forEach((page) => {
         page.Texts.forEach((item) => {
           item.R.forEach((r) => {
-            text += decodeURIComponent(r.T) + " ";
+            const token = decodePdfTextToken(r.T);
+            if (token) {
+              text += token + " ";
+            }
           });
 
           text += "\n";
